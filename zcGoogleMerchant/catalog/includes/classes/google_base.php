@@ -319,11 +319,14 @@
         } else {
           // are back orders allowed?
           if (STOCK_ALLOW_CHECKOUT == 'true') {
-            if ($products->fields['products_date_available'] != 'NULL') {
-              $item->appendChild($dom->createElement('g:availability', 'available for order'));
-            } else {
-              $item->appendChild($dom->createElement('g:availability', 'preorder'));
-            }
+            //"available for order" is not longer an option changing to "preorder"
+            $item->appendChild($dom->createElement('g:availability', 'preorder'));
+		  
+            //if ($products->fields['products_date_available'] != 'NULL') {
+            //  $item->appendChild($dom->createElement('g:availability', 'available for order'));
+            //} else {
+            //  $item->appendChild($dom->createElement('g:availability', 'preorder'));
+            //}
           } else {
             $item->appendChild($dom->createElement('g:availability', 'out of stock'));
           }
