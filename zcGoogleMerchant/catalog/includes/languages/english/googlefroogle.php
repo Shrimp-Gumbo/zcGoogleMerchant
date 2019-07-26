@@ -10,7 +10,7 @@
  * @version $Id: googlefroogle.php 57 2011-05-17 00:35:31Z numinix $
  */
  
-define('TEXT_GOOGLE_PRODUCTS_STARTED', 'Google Merchant Center Feeder v%s started ' . date("Y/m/d H:i:s"));
+define('TEXT_GOOGLE_PRODUCTS_STARTED', 'Google Merchant Center Feeder v%s started ' . date("m/d/Y H:i:s"));
 define('TEXT_GOOGLE_PRODUCTS_FILE_LOCATION', 'Feed file - ');
 define('TEXT_GOOGLE_PRODUCTS_FEED_COMPLETE', 'Google Merchant Center File Complete');
 define('TEXT_GOOGLE_PRODUCTS_FEED_TIMER', 'Time:');
