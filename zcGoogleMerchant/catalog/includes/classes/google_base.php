@@ -385,6 +385,9 @@
           }
         }
       }
+	
+      //new required field, for now set to the expiration date	    
+      $item->appendChild($dom->createElement('g:priceValidUntil', $this->google_base_expiration_date($products->fields['base_date'])));
       // only include if less then 30 days as 30 is the max and leaving blank will default to the max
       if (GOOGLE_PRODUCTS_EXPIRATION_DAYS <= 29) {
         $item->appendChild($dom->createElement('g:expiration_date', $this->google_base_expiration_date($products->fields['base_date'])));
