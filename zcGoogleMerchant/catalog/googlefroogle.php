@@ -10,6 +10,23 @@
  * @version $Id: googlefroogle.php 67 2011-09-15 19:26:39Z numinix $
  * @author Numinix Technology
  */
+
+function print_mem()
+{
+   $mem_usage = memory_get_usage();
+   $mem_peak = memory_get_peak_usage();
+
+   echo round($mem_usage / 1048576,3) . 'MB |' . round($mem_peak / 1048576,3) . 'MB';
+}
+
+function eDebug($debug_info,$g_b_s_counter,$run)
+{
+ if (GOOGLE_PRODUCTS_DEBUG == 'true') 
+    {
+    echo '<br>' . $g_b_s_counter . '|' . $debug_info . '|' .  print_mem();
+    }
+}
+
   /* configuration */
   if (phpversion() < 5) die('PHP 5+ required, please contact your host to upgrade.'); 
   require('includes/application_top.php');
@@ -23,7 +40,8 @@
   }
   if ((int)GOOGLE_PRODUCTS_MEMORY_LIMIT > 0) ini_set('memory_limit', (int)GOOGLE_PRODUCTS_MEMORY_LIMIT . 'M'); // change to whatever you need
   
-  $keepAlive = 100;  // perform a keep alive every x number of products  
+  //keepAlive not referenced
+  //$keepAlive = 100;  // perform a keep alive every x number of products  
   // include shipping class
   if (GOOGLE_PRODUCTS_SHIPPING_METHOD == 'percategory') { 
     include(DIR_WS_MODULES . 'shipping/percategory.php');
@@ -32,15 +50,15 @@
     include(DIR_WS_MODULES . 'shipping/freerules.php');
     $freerules = new freerules();
   }
-                                                                                                      
-  @define('GOOGLE_PRODUCTS_EXPIRATION_DAYS', 29);
-  @define('GOOGLE_PRODUCTS_EXPIRATION_BASE', 'now'); // now/product
-  @define('GOOGLE_PRODUCTS_OFFER_ID', 'id'); // id/model/false
-  @define('GOOGLE_PRODUCTS_DIRECTORY', 'feed/google/');
+                                                                                                   //variables already assigned do not reassign
+//  @define('GOOGLE_PRODUCTS_EXPIRATION_DAYS', 29);
+//  @define('GOOGLE_PRODUCTS_EXPIRATION_BASE', 'now'); // now/product
+//  @define('GOOGLE_PRODUCTS_OFFER_ID', 'id'); // id/model/false
+//  @define('GOOGLE_PRODUCTS_DIRECTORY', 'feed/google/');
   @define('GOOGLE_PRODUCTS_OUTPUT_BUFFER_MAXSIZE', 1024*1024*8); // 8MB
   $anti_timeout_counter = 0; //for timeout issues as well as counting number of products processed
   $google_base_start_counter = 0; //for counting all products regardless of inclusion
-  @define('GOOGLE_PRODUCTS_USE_CPATH', 'false');
+//  @define('GOOGLE_PRODUCTS_USE_CPATH', 'false');
   @define('NL', "<br />\n");
   
   $stock_attributes = false;
@@ -77,7 +95,6 @@
     if ($query_offset > 0) $outfile .= '_' . $query_offset;
     $outfile .= '.xml'; //example domain_products.xml
   }
-
   
   if (GOOGLE_PRODUCTS_MAGIC_SEO_URLS == 'true') {
     require_once(DIR_WS_CLASSES . 'msu_ao.php');
@@ -102,7 +119,6 @@
       echo ERROR_GOOGLE_PRODUCTS_DIRECTORY_DOES_NOT_EXIST . NL;
       die;
     }
-
     $stimer_feed = $google_base->microtime_float();
     
     $dom = new DOMDocument('1.0', 'utf-8');
@@ -117,6 +133,8 @@
     $channel->appendChild($title);
     $channel->appendChild($link);
     $channel->appendChild($channel_description);
+
+    eDebug("End of new DOMDocument",$google_base_start_counter,GOOGLE_PRODUCTS_DEBUG);
           
     $additional_attributes = '';
     $additional_tables = '';
@@ -168,15 +186,23 @@
                            GROUP BY pd.products_name
                            ORDER BY p.products_id ASC" . $limit . $offset . ";";
 
+        eDebug("products query:" . $products_query,$google_base_start_counter,GOOGLE_PRODUCTS_DEBUG);
+
         $products = $db->Execute($products_query);
         $total_products = $products->RecordCount();
-        //die('record count: ' . $products->RecordCount());
+
+        eDebug("total products:" . $total_products,$google_base_start_counter,GOOGLE_PRODUCTS_DEBUG);
+
+//---BEGIN WHILE LOOP
+
         while (!$products->EOF) { // run until end of file or until maximum number of products reached
           $google_base_start_counter++;
           /* BEGIN GLOBAL ELEMENTS USED IN ALL ITEMS */
           // reset tax array
           $tax_rate = array();
-          list($categories_list, $cPath) = $google_base->google_base_get_category($products->fields['products_id']);
+
+          //list($cat   not working right now
+          //list($categories_list, $cPath) = $google_base->google_base_get_category($products->fields['products_id']);
           if (GOOGLE_PRODUCTS_DEBUG == 'true') {
             if (!$google_base->check_product($products->fields['products_id'])) echo $products->fields['products_id'] . ' skipped due to user restrictions<br />';
           }
@@ -515,7 +541,14 @@
           ob_flush();
           flush();
           $products->MoveNext();
+
+          eDebug("After MoveNext()",$google_base_start_counter,GOOGLE_PRODUCTS_DEBUG);
         }
+
+//---END WHILE LOOP--------------------------------------------------------
+
+        eDebug("Before AppendChild Channel",$google_base_start_counter,GOOGLE_PRODUCTS_DEBUG);
+
         $rss->appendChild($channel);
         $dom->appendChild($rss);
         $dom->formatOutput = true;
@@ -538,7 +571,6 @@
     
     echo '<p>' . TEXT_GOOGLE_PRODUCTS_FEED_COMPLETE . ' ' . GOOGLE_PRODUCTS_TIME_TAKEN . ' ' . sprintf("%f " . TEXT_GOOGLE_PRODUCTS_FEED_SECONDS, number_format($timer_feed, 6) ) . ' ' . $anti_timeout_counter . ' of ' . $total_products . ' ' . TEXT_GOOGLE_PRODUCTS_FEED_RECORDS . '</p>';  
   }
-
   if (isset($upload) && $upload == "yes") {
     echo TEXT_GOOGLE_PRODUCTS_UPLOAD_STARTED . NL;
     if ($upload_file == '') $upload_file = $outfile; // use file just created if no upload file was specified
